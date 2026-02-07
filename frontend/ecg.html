@@ -11,8 +11,14 @@
   <div id="app">
     <!-- Header -->
     <div id="header">
-      <h1><i class="fas fa-heartbeat"></i> Cation ECG Monitoring System</h1>
-      <p class="header-subtitle">Real-time cardiac analytics dashboard for healthcare professionals</p>
+      <div class="header-main">
+        <h1><i class="fas fa-heartbeat"></i> Cation ECG Monitoring System</h1>
+        <p class="header-subtitle">AI-Powered Cardiac Analytics with Risk Assessment</p>
+      </div>
+      <div class="ml-badge">
+        <i class="fas fa-brain"></i>
+        <span>ML-Powered Analytics Active</span>
+      </div>
     </div>
 
     <!-- Controls Panel -->
@@ -39,24 +45,20 @@
         </div>
         
         <div class="control-group">
-          <div class="control-label">Time Range</div>
-          <div class="time-selector">
-            <i class="far fa-calendar-alt"></i>
-            <select id="timeRange">
-              <option>Last 30 minutes</option>
-              <option>Last hour</option>
-              <option>Last 6 hours</option>
-              <option>Last 24 hours</option>
-            </select>
-          </div>
+          <div class="control-label">ML Model</div>
+          <select id="mlModel">
+            <option value="xgboost">XGBoost Classifier</option>
+            <option value="random_forest">Random Forest</option>
+            <option value="neural_net">Neural Network</option>
+          </select>
         </div>
         
         <div class="control-group">
-          <div class="control-label">Alert Threshold</div>
-          <select id="alertThreshold">
-            <option>Normal (100 BPM)</option>
-            <option>Elevated (120 BPM)</option>
-            <option>Critical (140 BPM)</option>
+          <div class="control-label">Risk Threshold</div>
+          <select id="riskThreshold">
+            <option value="70">High Sensitivity (≥70%)</option>
+            <option value="85" selected>Balanced (≥85%)</option>
+            <option value="95">High Specificity (≥95%)</option>
           </select>
         </div>
         
@@ -67,166 +69,284 @@
       </div>
     </div>
 
-    <!-- Stats Cards -->
-    <div id="stats">
-      <div class="card">
-        <div class="card-header">
-          <div class="card-icon">
-            <i class="fas fa-heart"></i>
+    <!-- Main Dashboard Layout -->
+    <div class="dashboard-container">
+      <!-- Left Column: Patient Stats & ECG -->
+      <div class="dashboard-left">
+        <!-- Stats Cards -->
+        <div id="stats">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-icon">
+                <i class="fas fa-heart"></i>
+              </div>
+              <div class="card-trend trend-down">
+                <i class="fas fa-arrow-down"></i>
+                <span id="hr-trend">2.3%</span>
+              </div>
+            </div>
+            <div class="label">Heart Rate</div>
+            <div class="value" id="hr">72 BPM</div>
+            <div class="card-footer">
+              <i class="far fa-clock"></i>
+              <span>Updated just now</span>
+            </div>
           </div>
-          <div class="card-trend trend-down">
-            <i class="fas fa-arrow-down"></i>
-            <span>2.3%</span>
+          
+          <div class="card">
+            <div class="card-header">
+              <div class="card-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+              </div>
+              <div class="card-trend trend-up">
+                <i class="fas fa-arrow-up"></i>
+                <span id="risk-trend">+5.1%</span>
+              </div>
+            </div>
+            <div class="label">ML Risk Score</div>
+            <div class="value" id="risk-score">28%</div>
+            <div class="card-footer">
+              <i class="fas fa-brain"></i>
+              <span>XGBoost Model</span>
+            </div>
+          </div>
+          
+          <div class="card">
+            <div class="card-header">
+              <div class="card-icon">
+                <i class="fas fa-bell"></i>
+              </div>
+              <div class="card-trend trend-down">
+                <i class="fas fa-arrow-down"></i>
+                <span>0.5%</span>
+              </div>
+            </div>
+            <div class="label">Health Status</div>
+            <div class="value normal" id="status">Normal</div>
+            <div class="card-footer">
+              <i class="far fa-clock"></i>
+              <span>Stable for 2h 14m</span>
+            </div>
+          </div>
+          
+          <div class="card">
+            <div class="card-header">
+              <div class="card-icon">
+                <i class="fas fa-chart-line"></i>
+              </div>
+              <div class="card-trend trend-down">
+                <i class="fas fa-arrow-down"></i>
+                <span>3.7%</span>
+              </div>
+            </div>
+            <div class="label">Priority Level</div>
+            <div class="value" id="priority-level">Medium</div>
+            <div class="card-footer">
+              <i class="fas fa-sort-amount-up"></i>
+              <span>Queue Position: 2</span>
+            </div>
           </div>
         </div>
-        <div class="label">Heart Rate</div>
-        <div class="value" id="hr">72 BPM</div>
-        <div class="card-footer">
-          <i class="far fa-clock"></i>
-          <span>Updated just now</span>
+
+        <!-- ECG Display -->
+        <div id="display">
+          <div class="display-header">
+            <div class="display-title">
+              <i class="fas fa-heartbeat"></i>
+              <span>Real-time ECG Waveform</span>
+            </div>
+            <div class="display-actions">
+              <span id="current-user">Patient: Alex Johnson</span>
+            </div>
+          </div>
+          <div class="ecg-container">
+            <div class="ecg-grid"></div>
+            <canvas id="ecgCanvas" width="1200" height="300"></canvas>
+          </div>
         </div>
       </div>
-      
-      <div class="card">
-        <div class="card-header">
-          <div class="card-icon">
-            <i class="fas fa-wave-square"></i>
+
+      <!-- Right Column: ML Analytics -->
+      <div class="dashboard-right">
+        <!-- ML Analysis Card -->
+        <div class="ml-analysis">
+          <div class="ml-analysis-header">
+            <div class="ml-title">
+              <i class="fas fa-brain"></i>
+              <span>ML Health Classification</span>
+            </div>
+            <div class="ml-confidence">
+              <span>Confidence: </span>
+              <span id="ml-confidence">94.2%</span>
+            </div>
           </div>
-          <div class="card-trend trend-up">
-            <i class="fas fa-arrow-up"></i>
-            <span>1.1%</span>
+          
+          <div class="ml-predictions">
+            <div class="prediction-header">
+              <h4>Predicted Conditions</h4>
+              <span class="prediction-time">Last analysis: <span id="prediction-time">2 min ago</span></span>
+            </div>
+            
+            <div class="condition-list">
+              <div class="condition-item">
+                <div class="condition-name">
+                  <i class="fas fa-heart"></i>
+                  <span>Sinus Rhythm</span>
+                </div>
+                <div class="condition-probability">
+                  <div class="probability-bar">
+                    <div class="probability-fill" style="width: 92%; background-color: #26A69A;"></div>
+                  </div>
+                  <span class="probability-value">92%</span>
+                </div>
+              </div>
+              
+              <div class="condition-item">
+                <div class="condition-name">
+                  <i class="fas fa-exclamation-triangle"></i>
+                  <span>Atrial Fibrillation</span>
+                </div>
+                <div class="condition-probability">
+                  <div class="probability-bar">
+                    <div class="probability-fill" style="width: 28%; background-color: #FF9800;"></div>
+                  </div>
+                  <span class="probability-value">28%</span>
+                </div>
+              </div>
+              
+              <div class="condition-item">
+                <div class="condition-name">
+                  <i class="fas fa-times-circle"></i>
+                  <span>Ventricular Tachycardia</span>
+                </div>
+                <div class="condition-probability">
+                  <div class="probability-bar">
+                    <div class="probability-fill" style="width: 5%; background-color: #E57373;"></div>
+                  </div>
+                  <span class="probability-value">5%</span>
+                </div>
+              </div>
+              
+              <div class="condition-item">
+                <div class="condition-name">
+                  <i class="fas fa-heartbeat"></i>
+                  <span>Bradycardia</span>
+                </div>
+                <div class="condition-probability">
+                  <div class="probability-bar">
+                    <div class="probability-fill" style="width: 3%; background-color: #2196F3;"></div>
+                  </div>
+                  <span class="probability-value">3%</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="ml-insights">
+              <div class="insight-header">
+                <i class="fas fa-lightbulb"></i>
+                <span>ML Insights</span>
+              </div>
+              <p id="ml-insight-text">ECG shows regular sinus rhythm with occasional PVCs. Heart rate variability within normal limits. Low risk of arrhythmic events in next 24 hours.</p>
+            </div>
           </div>
         </div>
-        <div class="label">Rhythm Variability</div>
-        <div class="value">14.2 ms</div>
-        <div class="card-footer">
-          <i class="far fa-clock"></i>
-          <span>Within normal range</span>
-        </div>
-      </div>
-      
-      <div class="card">
-        <div class="card-header">
-          <div class="card-icon">
-            <i class="fas fa-bell"></i>
+
+        <!-- Risk Scoring Card -->
+        <div class="risk-scoring">
+          <div class="risk-header">
+            <h3><i class="fas fa-chart-pie"></i> Risk Factor Analysis</h3>
+            <div class="risk-score-display">
+              <div class="score-circle">
+                <svg width="80" height="80" viewBox="0 0 120 120">
+                  <circle cx="60" cy="60" r="54" fill="none" stroke="#eee" stroke-width="12"/>
+                  <circle id="risk-circle" cx="60" cy="60" r="54" fill="none" stroke="#E57373" stroke-width="12" 
+                          stroke-dasharray="339.292" stroke-dashoffset="244.292" stroke-linecap="round" transform="rotate(-90 60 60)"/>
+                  <text x="60" y="65" text-anchor="middle" font-size="20" font-weight="bold" fill="#333" id="risk-percent">28%</text>
+                </svg>
+              </div>
+              <div class="risk-details">
+                <div class="risk-category" id="risk-category">Low Risk</div>
+                <div class="risk-factors">
+                  <span>Factors: </span>
+                  <span id="risk-factors">4/12</span>
+                </div>
+              </div>
+            </div>
           </div>
-          <div class="card-trend trend-down">
-            <i class="fas fa-arrow-down"></i>
-            <span>0.5%</span>
+          
+          <div class="risk-breakdown">
+            <h4>Risk Factor Breakdown</h4>
+            <div class="risk-factors-list">
+              <div class="risk-factor">
+                <div class="factor-name">Heart Rate Variability</div>
+                <div class="factor-score">
+                  <div class="score-bar">
+                    <div class="score-fill" style="width: 30%;"></div>
+                  </div>
+                  <span class="score-value">30%</span>
+                </div>
+              </div>
+              
+              <div class="risk-factor">
+                <div class="factor-name">ST Segment Depression</div>
+                <div class="factor-score">
+                  <div class="score-bar">
+                    <div class="score-fill" style="width: 15%;"></div>
+                  </div>
+                  <span class="score-value">15%</span>
+                </div>
+              </div>
+              
+              <div class="risk-factor">
+                <div class="factor-name">QT Interval</div>
+                <div class="factor-score">
+                  <div class="score-bar">
+                    <div class="score-fill" style="width: 42%;"></div>
+                  </div>
+                  <span class="score-value">42%</span>
+                </div>
+              </div>
+              
+              <div class="risk-factor">
+                <div class="factor-name">Arrhythmia Frequency</div>
+                <div class="factor-score">
+                  <div class="score-bar">
+                    <div class="score-fill" style="width: 65%;"></div>
+                  </div>
+                  <span class="score-value">65%</span>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
-        <div class="label">Patient Status</div>
-        <div class="value normal" id="status">Normal</div>
-        <div class="card-footer">
-          <i class="far fa-clock"></i>
-          <span>Stable for 2h 14m</span>
-        </div>
-      </div>
-      
-      <div class="card">
-        <div class="card-header">
-          <div class="card-icon">
-            <i class="fas fa-chart-line"></i>
-          </div>
-          <div class="card-trend trend-down">
-            <i class="fas fa-arrow-down"></i>
-            <span>3.7%</span>
-          </div>
-        </div>
-        <div class="label">Avg. This Week</div>
-        <div class="value">68 BPM</div>
-        <div class="card-footer">
-          <i class="far fa-clock"></i>
-          <span>Compared to last week</span>
         </div>
       </div>
     </div>
 
-    <!-- ECG Display -->
-    <div id="display">
-      <div class="display-header">
-        <div class="display-title">
-          <i class="fas fa-heartbeat"></i>
-          <span>Real-time ECG Waveform</span>
-        </div>
-        <div class="display-actions">
-          <span id="current-user">Patient: Alex Johnson</span>
-        </div>
-      </div>
-      <div class="ecg-container">
-        <div class="ecg-grid"></div>
-        <canvas id="ecgCanvas" width="1200" height="300"></canvas>
-      </div>
-    </div>
-
-    <!-- Comparison Section -->
-    <div id="comparison">
+    <!-- Patient Prioritization Table -->
+    <div id="prioritization">
       <div class="section-header">
-        <div class="section-title">Multi-Patient Comparison</div>
-        <div class="section-subtitle">Last 24 hours analysis</div>
-      </div>
-      
-      <div class="chart-container">
-        <canvas id="compareChart" width="800" height="250"></canvas>
+        <div class="section-title">
+          <i class="fas fa-list-ol"></i>
+          <span>Patient Prioritization</span>
+        </div>
+        <div class="section-subtitle">Sorted by ML Risk Score & Severity</div>
       </div>
       
       <div class="table-responsive">
         <table>
           <thead>
             <tr>
+              <th>Priority</th>
               <th>Patient</th>
-              <th>Avg Heart Rate (BPM)</th>
-              <th>Peak Heart Rate</th>
+              <th>ML Risk Score</th>
+              <th>Predicted Condition</th>
+              <th>Heart Rate (BPM)</th>
               <th>Status</th>
-              <th>Last Updated</th>
+              <th>Action Required</th>
             </tr>
           </thead>
-          <tbody>
-            <tr>
-              <td>
-                <div class="user-badge">
-                  <div class="user-avatar">AJ</div>
-                  <div>
-                    <div>Alex Johnson</div>
-                    <div style="font-size: 12px; color: #666;">ID: P-001</div>
-                  </div>
-                </div>
-              </td>
-              <td id="u1hr">72</td>
-              <td>89</td>
-              <td><span class="status-badge status-normal" id="u1status">Normal</span></td>
-              <td>2 min ago</td>
-            </tr>
-            <tr>
-              <td>
-                <div class="user-badge">
-                  <div class="user-avatar">MG</div>
-                  <div>
-                    <div>Maria Garcia</div>
-                    <div style="font-size: 12px; color: #666;">ID: P-002</div>
-                  </div>
-                </div>
-              </td>
-              <td id="u2hr">88</td>
-              <td>102</td>
-              <td><span class="status-badge status-alert" id="u2status">Alert</span></td>
-              <td>3 min ago</td>
-            </tr>
-            <tr>
-              <td>
-                <div class="user-badge">
-                  <div class="user-avatar">DC</div>
-                  <div>
-                    <div>David Chen</div>
-                    <div style="font-size: 12px; color: #666;">ID: P-003</div>
-                  </div>
-                </div>
-              </td>
-              <td id="u3hr">110</td>
-              <td>118</td>
-              <td><span class="status-badge status-alert" id="u3status">Alert</span></td>
-              <td>1 min ago</td>
-            </tr>
+          <tbody id="priority-table">
+            <!-- Filled by JavaScript -->
           </tbody>
         </table>
       </div>
@@ -234,10 +354,10 @@
 
     <!-- Footer -->
     <div class="footer">
-      <div class="footer-logo">CardioSync ECG Monitoring System</div>
-      <div>© 2023 Medical Analytics Dashboard v2.1 | For clinical use only</div>
+      <div class="footer-logo">Cation ECG Monitoring System v3.0</div>
+      <div>© 2026 AI-Powered Medical Analytics Dashboard | For clinical use only</div>
       <div class="footer-security">
-        <i class="fas fa-shield-alt"></i> All data is encrypted and HIPAA compliant
+        <i class="fas fa-shield-alt"></i> All data is encrypted and HIPAA compliant | 
       </div>
     </div>
   </div>
