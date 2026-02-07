@@ -1,5 +1,3 @@
-# cation
-
 # 📊 Real-Time ECG Signal Analysis with IoT and 5G Communication
 
 ## 📌 Project Overview
