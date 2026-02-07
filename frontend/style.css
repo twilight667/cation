@@ -6,6 +6,8 @@
     --neutral-light: #EEEEEE;
     --accent-health: #26A69A;
     --heartbeat-alert: #E57373;
+    --warning-orange: #FF9800;
+    --info-blue: #2196F3;
     --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
     --transition: all 0.3s ease;
   }
@@ -25,7 +27,7 @@
   }
   
   #app {
-    max-width: 1400px;
+    max-width: 1600px;
     margin: 0 auto;
     padding: 20px;
   }
@@ -39,6 +41,9 @@
     box-shadow: var(--card-shadow);
     position: relative;
     overflow: hidden;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
   }
   
   #header::before {
@@ -48,10 +53,10 @@
     left: 0;
     right: 0;
     height: 4px;
-    background: var(--secondary-text);
+    background: linear-gradient(90deg, var(--accent-health), var(--secondary-text));
   }
   
-  #header h1 {
+  .header-main h1 {
     color: var(--secondary-text);
     font-size: 32px;
     font-weight: 700;
@@ -61,7 +66,7 @@
     gap: 12px;
   }
   
-  #header h1 i {
+  .header-main h1 i {
     color: var(--accent-health);
   }
   
@@ -71,18 +76,37 @@
     font-weight: 500;
   }
   
+  .ml-badge {
+    background: rgba(38, 166, 154, 0.15);
+    color: var(--accent-health);
+    padding: 10px 20px;
+    border-radius: 25px;
+    font-size: 14px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 2px solid var(--accent-health);
+  }
+  
   /* Main Dashboard Layout */
   .dashboard-container {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr 400px;
     gap: 30px;
     margin-bottom: 30px;
   }
   
-  @media (max-width: 1024px) {
+  @media (max-width: 1200px) {
     .dashboard-container {
       grid-template-columns: 1fr;
     }
+  }
+  
+  .dashboard-left, .dashboard-right {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
   }
   
   /* Controls Panel */
@@ -92,6 +116,7 @@
     border-radius: 16px;
     box-shadow: var(--card-shadow);
     margin-bottom: 30px;
+    grid-column: 1 / -1;
   }
   
   .panel-header {
@@ -154,17 +179,6 @@
     box-shadow: 0 0 0 3px rgba(38, 166, 154, 0.2);
   }
   
-  .time-selector {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 16px;
-  }
-  
-  .time-selector i {
-    color: var(--secondary-text);
-  }
-  
   .export-btn {
     background-color: var(--secondary-text);
     color: white;
@@ -191,7 +205,6 @@
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
     gap: 20px;
-    margin-bottom: 30px;
   }
   
   .card {
@@ -221,6 +234,10 @@
   
   .card.alert::before {
     background: var(--heartbeat-alert);
+  }
+  
+  .card.warning::before {
+    background: var(--warning-orange);
   }
   
   .card-header {
@@ -294,8 +311,6 @@
     padding: 24px;
     border-radius: 16px;
     box-shadow: var(--card-shadow);
-    margin-bottom: 30px;
-    grid-column: 1 / -1;
   }
   
   .display-header {
@@ -343,8 +358,242 @@
     pointer-events: none;
   }
   
-  /* Comparison Section */
-  #comparison {
+  /* ML Analysis Card */
+  .ml-analysis, .risk-scoring {
+    background: white;
+    padding: 24px;
+    border-radius: 16px;
+    box-shadow: var(--card-shadow);
+  }
+  
+  .ml-analysis-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid var(--neutral-light);
+  }
+  
+  .ml-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--secondary-text);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .ml-confidence {
+    background: rgba(38, 166, 154, 0.1);
+    padding: 6px 12px;
+    border-radius: 15px;
+    font-size: 14px;
+    color: var(--accent-health);
+    font-weight: 600;
+  }
+  
+  .ml-predictions {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .prediction-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .prediction-header h4 {
+    color: var(--secondary-text);
+    font-size: 16px;
+  }
+  
+  .prediction-time {
+    font-size: 13px;
+    color: #888;
+  }
+  
+  .condition-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .condition-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background: #f9f9f9;
+    border-radius: 8px;
+    transition: var(--transition);
+  }
+  
+  .condition-item:hover {
+    background: #f0f0f0;
+  }
+  
+  .condition-name {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    font-weight: 500;
+  }
+  
+  .condition-probability {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 150px;
+  }
+  
+  .probability-bar {
+    flex: 1;
+    height: 8px;
+    background: #eee;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  
+  .probability-fill {
+    height: 100%;
+    border-radius: 4px;
+  }
+  
+  .probability-value {
+    font-size: 14px;
+    font-weight: 600;
+    min-width: 35px;
+    text-align: right;
+  }
+  
+  .ml-insights {
+    background: rgba(187, 222, 251, 0.2);
+    padding: 15px;
+    border-radius: 10px;
+    border-left: 4px solid var(--secondary-text);
+  }
+  
+  .insight-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--secondary-text);
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  
+  .ml-insights p {
+    font-size: 14px;
+    color: #555;
+    line-height: 1.5;
+  }
+  
+  /* Risk Scoring */
+  .risk-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+  }
+  
+  .risk-header h3 {
+    color: var(--secondary-text);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 18px;
+  }
+  
+  .risk-score-display {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+  
+  .score-circle {
+    position: relative;
+  }
+  
+  .risk-details {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  
+  .risk-category {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--secondary-text);
+  }
+  
+  .risk-factors {
+    font-size: 14px;
+    color: #666;
+  }
+  
+  .risk-breakdown {
+    margin-top: 20px;
+  }
+  
+  .risk-breakdown h4 {
+    color: var(--secondary-text);
+    margin-bottom: 15px;
+    font-size: 16px;
+  }
+  
+  .risk-factors-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .risk-factor {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .factor-name {
+    font-size: 14px;
+    color: #555;
+    width: 160px;
+  }
+  
+  .factor-score {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    max-width: 200px;
+  }
+  
+  .score-bar {
+    flex: 1;
+    height: 6px;
+    background: #eee;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  
+  .score-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent-health), var(--heartbeat-alert));
+    border-radius: 3px;
+  }
+  
+  .score-value {
+    font-size: 13px;
+    font-weight: 600;
+    color: #333;
+    min-width: 35px;
+  }
+  
+  /* Patient Prioritization Table */
+  #prioritization {
     background: white;
     padding: 30px;
     border-radius: 16px;
@@ -363,22 +612,14 @@
     font-size: 24px;
     font-weight: 700;
     color: var(--secondary-text);
+    display: flex;
+    align-items: center;
+    gap: 10px;
   }
   
   .section-subtitle {
     color: #666;
     font-size: 14px;
-  }
-  
-  .chart-container {
-    height: 250px;
-    margin-bottom: 30px;
-    position: relative;
-  }
-  
-  #compareChart {
-    width: 100%;
-    height: 100%;
   }
   
   /* Table Styles */
@@ -391,7 +632,7 @@
   table {
     width: 100%;
     border-collapse: collapse;
-    min-width: 600px;
+    min-width: 800px;
   }
   
   thead {
@@ -419,24 +660,42 @@
     background-color: rgba(187, 222, 251, 0.1);
   }
   
-  .user-badge {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+  /* Priority Badges */
+  .priority-badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    text-align: center;
+    display: inline-block;
+    min-width: 80px;
   }
   
-  .user-avatar {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background: var(--primary-bg);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--secondary-text);
-    font-weight: 600;
+  .priority-critical {
+    background-color: rgba(229, 115, 115, 0.15);
+    color: var(--heartbeat-alert);
+    border: 1px solid rgba(229, 115, 115, 0.3);
   }
   
+  .priority-high {
+    background-color: rgba(255, 152, 0, 0.15);
+    color: var(--warning-orange);
+    border: 1px solid rgba(255, 152, 0, 0.3);
+  }
+  
+  .priority-medium {
+    background-color: rgba(33, 150, 243, 0.15);
+    color: var(--info-blue);
+    border: 1px solid rgba(33, 150, 243, 0.3);
+  }
+  
+  .priority-low {
+    background-color: rgba(38, 166, 154, 0.15);
+    color: var(--accent-health);
+    border: 1px solid rgba(38, 166, 154, 0.3);
+  }
+  
+  /* Status Badges */
   .status-badge {
     padding: 6px 12px;
     border-radius: 20px;
@@ -454,6 +713,33 @@
   .status-alert {
     background-color: rgba(229, 115, 115, 0.15);
     color: var(--heartbeat-alert);
+  }
+  
+  /* Action Badges */
+  .action-badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: center;
+  }
+  
+  .action-immediate {
+    background-color: rgba(229, 115, 115, 0.15);
+    color: var(--heartbeat-alert);
+    border: 1px dashed var(--heartbeat-alert);
+  }
+  
+  .action-review {
+    background-color: rgba(255, 152, 0, 0.15);
+    color: var(--warning-orange);
+    border: 1px dashed var(--warning-orange);
+  }
+  
+  .action-monitor {
+    background-color: rgba(33, 150, 243, 0.15);
+    color: var(--info-blue);
+    border: 1px dashed var(--info-blue);
   }
   
   /* Footer */
@@ -476,6 +762,10 @@
   .footer-security {
     margin-top: 8px;
     font-size: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
   }
   
   /* Alert Animation */
@@ -490,17 +780,29 @@
   }
   
   /* Responsive Adjustments */
+  @media (max-width: 1200px) {
+    .dashboard-container {
+      grid-template-columns: 1fr;
+    }
+    
+    .dashboard-left, .dashboard-right {
+      width: 100%;
+    }
+  }
+  
   @media (max-width: 768px) {
     #app {
       padding: 15px;
     }
     
-    #header h1 {
-      font-size: 24px;
+    #header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 15px;
     }
     
-    .dashboard-container {
-      gap: 20px;
+    .header-main h1 {
+      font-size: 24px;
     }
     
     .controls-row {
@@ -508,7 +810,7 @@
       align-items: flex-start;
     }
     
-    select, .time-selector {
+    select {
       width: 100%;
     }
     
@@ -521,6 +823,12 @@
     }
     
     .section-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    
+    .risk-score-display {
       flex-direction: column;
       align-items: flex-start;
       gap: 10px;
