@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CardioSync ECG Monitoring Dashboard</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+    <!-- Header -->
+    <div id="header">
+      <h1><i class="fas fa-heartbeat"></i> Cation ECG Monitoring System</h1>
+      <p class="header-subtitle">Real-time cardiac analytics dashboard for healthcare professionals</p>
+    </div>
+
+    <!-- Controls Panel -->
+    <div id="controls-panel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <i class="fas fa-sliders-h"></i>
+          <span>Dashboard Controls</span>
+        </div>
+        <div class="current-time">
+          <i class="far fa-clock"></i>
+          <span id="current-time">Loading...</span>
+        </div>
+      </div>
+      
+      <div class="controls-row">
+        <div class="control-group">
+          <div class="control-label">Select Patient</div>
+          <select id="user">
+            <option value="0">Alex Johnson (ID: P-001)</option>
+            <option value="1">Maria Garcia (ID: P-002)</option>
+            <option value="2">David Chen (ID: P-003)</option>
+          </select>
+        </div>
+        
+        <div class="control-group">
+          <div class="control-label">Time Range</div>
+          <div class="time-selector">
+            <i class="far fa-calendar-alt"></i>
+            <select id="timeRange">
+              <option>Last 30 minutes</option>
+              <option>Last hour</option>
+              <option>Last 6 hours</option>
+              <option>Last 24 hours</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="control-group">
+          <div class="control-label">Alert Threshold</div>
+          <select id="alertThreshold">
+            <option>Normal (100 BPM)</option>
+            <option>Elevated (120 BPM)</option>
+            <option>Critical (140 BPM)</option>
+          </select>
+        </div>
+        
+        <button id="export-btn" class="control-group export-btn">
+          <i class="fas fa-download"></i>
+          Export Report
+        </button>
+      </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div id="stats">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">
+            <i class="fas fa-heart"></i>
+          </div>
+          <div class="card-trend trend-down">
+            <i class="fas fa-arrow-down"></i>
+            <span>2.3%</span>
+          </div>
+        </div>
+        <div class="label">Heart Rate</div>
+        <div class="value" id="hr">72 BPM</div>
+        <div class="card-footer">
+          <i class="far fa-clock"></i>
+          <span>Updated just now</span>
+        </div>
+      </div>
+      
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">
+            <i class="fas fa-wave-square"></i>
+          </div>
+          <div class="card-trend trend-up">
+            <i class="fas fa-arrow-up"></i>
+            <span>1.1%</span>
+          </div>
+        </div>
+        <div class="label">Rhythm Variability</div>
+        <div class="value">14.2 ms</div>
+        <div class="card-footer">
+          <i class="far fa-clock"></i>
+          <span>Within normal range</span>
+        </div>
+      </div>
+      
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">
+            <i class="fas fa-bell"></i>
+          </div>
+          <div class="card-trend trend-down">
+            <i class="fas fa-arrow-down"></i>
+            <span>0.5%</span>
+          </div>
+        </div>
+        <div class="label">Patient Status</div>
+        <div class="value normal" id="status">Normal</div>
+        <div class="card-footer">
+          <i class="far fa-clock"></i>
+          <span>Stable for 2h 14m</span>
+        </div>
+      </div>
+      
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">
+            <i class="fas fa-chart-line"></i>
+          </div>
+          <div class="card-trend trend-down">
+            <i class="fas fa-arrow-down"></i>
+            <span>3.7%</span>
+          </div>
+        </div>
+        <div class="label">Avg. This Week</div>
+        <div class="value">68 BPM</div>
+        <div class="card-footer">
+          <i class="far fa-clock"></i>
+          <span>Compared to last week</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ECG Display -->
+    <div id="display">
+      <div class="display-header">
+        <div class="display-title">
+          <i class="fas fa-heartbeat"></i>
+          <span>Real-time ECG Waveform</span>
+        </div>
+        <div class="display-actions">
+          <span id="current-user">Patient: Alex Johnson</span>
+        </div>
+      </div>
+      <div class="ecg-container">
+        <div class="ecg-grid"></div>
+        <canvas id="ecgCanvas" width="1200" height="300"></canvas>
+      </div>
+    </div>
+
+    <!-- Comparison Section -->
+    <div id="comparison">
+      <div class="section-header">
+        <div class="section-title">Multi-Patient Comparison</div>
+        <div class="section-subtitle">Last 24 hours analysis</div>
+      </div>
+      
+      <div class="chart-container">
+        <canvas id="compareChart" width="800" height="250"></canvas>
+      </div>
+      
+      <div class="table-responsive">
+        <table>
+          <thead>
+            <tr>
+              <th>Patient</th>
+              <th>Avg Heart Rate (BPM)</th>
+              <th>Peak Heart Rate</th>
+              <th>Status</th>
+              <th>Last Updated</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div class="user-badge">
+                  <div class="user-avatar">AJ</div>
+                  <div>
+                    <div>Alex Johnson</div>
+                    <div style="font-size: 12px; color: #666;">ID: P-001</div>
+                  </div>
+                </div>
+              </td>
+              <td id="u1hr">72</td>
+              <td>89</td>
+              <td><span class="status-badge status-normal" id="u1status">Normal</span></td>
+              <td>2 min ago</td>
+            </tr>
+            <tr>
+              <td>
+                <div class="user-badge">
+                  <div class="user-avatar">MG</div>
+                  <div>
+                    <div>Maria Garcia</div>
+                    <div style="font-size: 12px; color: #666;">ID: P-002</div>
+                  </div>
+                </div>
+              </td>
+              <td id="u2hr">88</td>
+              <td>102</td>
+              <td><span class="status-badge status-alert" id="u2status">Alert</span></td>
+              <td>3 min ago</td>
+            </tr>
+            <tr>
+              <td>
+                <div class="user-badge">
+                  <div class="user-avatar">DC</div>
+                  <div>
+                    <div>David Chen</div>
+                    <div style="font-size: 12px; color: #666;">ID: P-003</div>
+                  </div>
+                </div>
+              </td>
+              <td id="u3hr">110</td>
+              <td>118</td>
+              <td><span class="status-badge status-alert" id="u3status">Alert</span></td>
+              <td>1 min ago</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <div class="footer-logo">CardioSync ECG Monitoring System</div>
+      <div>© 2023 Medical Analytics Dashboard v2.1 | For clinical use only</div>
+      <div class="footer-security">
+        <i class="fas fa-shield-alt"></i> All data is encrypted and HIPAA compliant
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
