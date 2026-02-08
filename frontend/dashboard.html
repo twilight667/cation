@@ -1,0 +1,1071 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CardioSync ECG Monitoring Dashboard</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    /* Base Styles */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    #app {
+      max-width: 1600px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      overflow: hidden;
+    }
+
+    /* Header */
+    #header {
+      background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+      color: white;
+      padding: 25px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .header-main h1 {
+      font-size: 28px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .header-subtitle {
+      font-size: 16px;
+      opacity: 0.9;
+    }
+
+    .ml-badge {
+      background: rgba(255, 255, 255, 0.15);
+      padding: 10px 20px;
+      border-radius: 50px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 600;
+      backdrop-filter: blur(10px);
+    }
+
+    /* Controls Panel */
+    #controls-panel {
+      background: #f8f9fa;
+      border-bottom: 1px solid #e0e0e0;
+      padding: 20px 30px;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .panel-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 18px;
+      font-weight: 600;
+      color: #2c3e50;
+    }
+
+    .current-time {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #666;
+      font-weight: 500;
+    }
+
+    .controls-row {
+      display: flex;
+      gap: 20px;
+      align-items: flex-end;
+      flex-wrap: wrap;
+    }
+
+    .control-group {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .control-label {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+
+    select {
+      width: 100%;
+      padding: 12px 15px;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 14px;
+      background: white;
+      transition: all 0.3s;
+    }
+
+    select:focus {
+      outline: none;
+      border-color: #3498db;
+    }
+
+    .export-btn {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 12px 25px;
+      border-radius: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 600;
+      transition: transform 0.3s;
+    }
+
+    .export-btn:hover {
+      transform: translateY(-2px);
+    }
+
+    /* Dashboard Layout */
+    .dashboard-container {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 25px;
+      padding: 30px;
+    }
+
+    /* Stats Cards */
+    #stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      margin-bottom: 25px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 15px;
+      padding: 20px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+      border: 1px solid #e0e0e0;
+      transition: transform 0.3s;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .card-icon {
+      width: 45px;
+      height: 45px;
+      background: linear-gradient(135deg, #667eea20 0%, #764ba220 100%);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      color: #667eea;
+    }
+
+    .card-trend {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .trend-up {
+      color: #e74c3c;
+    }
+
+    .trend-down {
+      color: #2ecc71;
+    }
+
+    .card .label {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 5px;
+    }
+
+    .card .value {
+      font-size: 32px;
+      font-weight: 700;
+      color: #2c3e50;
+      margin-bottom: 15px;
+    }
+
+    .value.critical { color: #e74c3c; }
+    .value.warning { color: #f39c12; }
+    .value.normal { color: #2ecc71; }
+
+    .card-footer {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: #888;
+      padding-top: 15px;
+      border-top: 1px solid #eee;
+    }
+
+    /* ECG Display */
+    #display {
+      background: white;
+      border-radius: 15px;
+      padding: 25px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+      border: 1px solid #e0e0e0;
+    }
+
+    .display-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .display-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 20px;
+      font-weight: 600;
+      color: #2c3e50;
+    }
+
+    .display-actions {
+      font-weight: 500;
+      color: #666;
+    }
+
+    .ecg-container {
+      position: relative;
+      background: #f8f9fa;
+      border-radius: 10px;
+      padding: 20px;
+      overflow: hidden;
+    }
+
+    .ecg-grid {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image: 
+        linear-gradient(to right, rgba(0,0,0,0.05) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(0,0,0,0.05) 1px, transparent 1px);
+      background-size: 50px 25px;
+    }
+
+    #ecgCanvas {
+      width: 100%;
+      height: 300px;
+      display: block;
+    }
+
+    /* Right Column */
+    .ml-analysis, .risk-scoring {
+      background: white;
+      border-radius: 15px;
+      padding: 25px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+      border: 1px solid #e0e0e0;
+      margin-bottom: 25px;
+    }
+
+    .ml-analysis-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 25px;
+    }
+
+    .ml-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 18px;
+      font-weight: 600;
+      color: #2c3e50;
+    }
+
+    .ml-confidence {
+      font-weight: 600;
+      color: #2ecc71;
+    }
+
+    .prediction-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .prediction-header h4 {
+      font-size: 16px;
+      color: #2c3e50;
+    }
+
+    .prediction-time {
+      font-size: 12px;
+      color: #666;
+    }
+
+    .condition-list {
+      margin-bottom: 25px;
+    }
+
+    .condition-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid #eee;
+    }
+
+    .condition-name {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 500;
+    }
+
+    .condition-probability {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      width: 60%;
+    }
+
+    .probability-bar {
+      flex: 1;
+      height: 8px;
+      background: #eee;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .probability-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.5s ease;
+    }
+
+    .probability-value {
+      font-weight: 600;
+      min-width: 40px;
+      text-align: right;
+    }
+
+    .ml-insights {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 10px;
+      margin-top: 20px;
+    }
+
+    .insight-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+      font-weight: 600;
+      color: #2c3e50;
+    }
+
+    .risk-header {
+      margin-bottom: 25px;
+    }
+
+    .risk-header h3 {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .risk-score-display {
+      display: flex;
+      align-items: center;
+      gap: 30px;
+    }
+
+    .score-circle {
+      position: relative;
+    }
+
+    .risk-details {
+      flex: 1;
+    }
+
+    .risk-category {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .risk-factors {
+      font-size: 14px;
+      color: #666;
+    }
+
+    .risk-breakdown h4 {
+      margin-bottom: 20px;
+      color: #2c3e50;
+    }
+
+    .risk-factors-list {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .risk-factor {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .factor-name {
+      font-weight: 500;
+      width: 40%;
+    }
+
+    .factor-score {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      width: 60%;
+    }
+
+    .score-bar {
+      flex: 1;
+      height: 6px;
+      background: #eee;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .score-fill {
+      height: 100%;
+      border-radius: 3px;
+      background: #667eea;
+      transition: width 0.5s ease;
+    }
+
+    .score-value {
+      font-weight: 600;
+      min-width: 40px;
+      text-align: right;
+    }
+
+    /* Patient Prioritization Table */
+    #prioritization {
+      padding: 0 30px 30px;
+    }
+
+    .section-header {
+      margin-bottom: 25px;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 22px;
+      font-weight: 600;
+      color: #2c3e50;
+      margin-bottom: 8px;
+    }
+
+    .section-subtitle {
+      color: #666;
+      font-size: 14px;
+    }
+
+    .table-responsive {
+      overflow-x: auto;
+      border-radius: 10px;
+      border: 1px solid #e0e0e0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead {
+      background: #f8f9fa;
+    }
+
+    th {
+      padding: 18px 15px;
+      text-align: left;
+      font-weight: 600;
+      color: #2c3e50;
+      border-bottom: 2px solid #e0e0e0;
+    }
+
+    td {
+      padding: 18px 15px;
+      border-bottom: 1px solid #eee;
+    }
+
+    tbody tr:hover {
+      background: #f8f9fa;
+      cursor: pointer;
+    }
+
+    tbody tr.selected {
+      background: #e3f2fd !important;
+      border-left: 4px solid #2196F3;
+    }
+
+    /* Badge styles */
+    .real-patient-indicator {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      margin-left: 8px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    
+    .badge-high { background-color: #FFEBEE; color: #C62828; }
+    .badge-medium { background-color: #FFF3E0; color: #EF6C00; }
+    .badge-low { background-color: #E8F5E9; color: #2E7D32; }
+    
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    
+    .status-critical { background-color: #FFEBEE; color: #C62828; }
+    .status-warning { background-color: #FFF3E0; color: #EF6C00; }
+    .status-normal { background-color: #E8F5E9; color: #2E7D32; }
+    
+    /* Risk score bars in table */
+    .risk-score {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .score-bar {
+      flex-grow: 1;
+      height: 8px;
+      background-color: #eee;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    
+    .score-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.3s ease;
+    }
+    
+    /* Patient info in table */
+    .patient-info {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .patient-name {
+      font-weight: 600;
+      color: #333;
+    }
+    
+    .patient-id {
+      font-size: 12px;
+      color: #666;
+    }
+    
+    /* Heart rate display */
+    .heart-rate {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+    }
+    
+    /* Action required */
+    .action-required {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 500;
+    }
+    
+    .urgent-bell {
+      color: #F44336;
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.2); }
+      100% { transform: scale(1); }
+    }
+
+    /* Footer */
+    .footer {
+      background: #2c3e50;
+      color: white;
+      padding: 25px 30px;
+      text-align: center;
+      font-size: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .footer-logo {
+      font-size: 16px;
+      font-weight: 600;
+      color: #3498db;
+    }
+
+    .footer-security {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      opacity: 0.8;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 1200px) {
+      .dashboard-container {
+        grid-template-columns: 1fr;
+      }
+      
+      #stats {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 768px) {
+      #stats {
+        grid-template-columns: 1fr;
+      }
+      
+      .controls-row {
+        flex-direction: column;
+      }
+      
+      .control-group {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <!-- Header -->
+    <div id="header">
+      <div class="header-main">
+        <h1><i class="fas fa-heartbeat"></i> Cation ECG Monitoring System</h1>
+        <p class="header-subtitle">AI-Powered Cardiac Analytics with Risk Assessment</p>
+      </div>
+      <div class="ml-badge">
+        <i class="fas fa-brain"></i>
+        <span>ML-Powered Analytics Active</span>
+      </div>
+    </div>
+
+    <!-- Controls Panel -->
+    <div id="controls-panel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <i class="fas fa-sliders-h"></i>
+          <span>Dashboard Controls</span>
+        </div>
+        <div class="current-time">
+          <i class="far fa-clock"></i>
+          <span id="current-time">Loading...</span>
+        </div>
+      </div>
+      
+      <div class="controls-row">
+        <div class="control-group">
+          <div class="control-label">Select Patient</div>
+          <select id="user">
+            <option value="0">Loading patients...</option>
+          </select>
+        </div>
+        
+        <div class="control-group">
+          <div class="control-label">ML Model</div>
+          <select id="mlModel">
+            <option value="xgboost">XGBoost Classifier</option>
+            <option value="random_forest">Random Forest</option>
+            <option value="neural_net">Neural Network</option>
+          </select>
+        </div>
+        
+        <div class="control-group">
+          <div class="control-label">Risk Threshold</div>
+          <select id="riskThreshold">
+            <option value="70">High Sensitivity (≥70%)</option>
+            <option value="85" selected>Balanced (≥85%)</option>
+            <option value="95">High Specificity (≥95%)</option>
+          </select>
+        </div>
+        
+        <button id="export-btn" class="control-group export-btn">
+          <i class="fas fa-download"></i>
+          Export Report
+        </button>
+      </div>
+    </div>
+
+     <!-- Patient Prioritization Table -->
+    <div id="prioritization">
+      <div class="section-header">
+        <div class="section-title">
+          <i class="fas fa-list-ol"></i>
+          <span>Patient Prioritization</span>
+        </div>
+        <div class="section-subtitle">Sorted by ML Risk Score & Severity</div>
+      </div>
+
+      <div class="table-responsive">
+        <table>
+          <thead>
+            <tr>
+              <th>Priority</th>
+              <th>Patient</th>
+              <th>ML Risk Score</th>
+              <th>Predicted Condition</th>
+              <th>Heart Rate (BPM)</th>
+              <th>Status</th>
+              <th>Action Required</th>
+            </tr>
+          </thead>
+          <tbody id="priority-table">
+            <tr>
+              <td colspan="7" style="text-align: center; padding: 40px;">
+                <i class="fas fa-spinner fa-spin"></i> Loading patient data...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Main Dashboard Layout -->
+    <div class="dashboard-container">
+      <!-- Left Column: Patient Stats & ECG -->
+      <div class="dashboard-left">
+        <!-- Stats Cards -->
+        <div id="stats">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-icon">
+                <i class="fas fa-heart"></i>
+              </div>
+              <div class="card-trend trend-down">
+                <i class="fas fa-arrow-down"></i>
+                <span id="hr-trend">2.3%</span>
+              </div>
+            </div>
+            <div class="label">Heart Rate</div>
+            <div class="value" id="hr">72 BPM</div>
+            <div class="card-footer">
+              <i class="far fa-clock"></i>
+              <span>Updated just now</span>
+            </div>
+          </div>
+          
+          <div class="card">
+            <div class="card-header">
+              <div class="card-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+              </div>
+              <div class="card-trend trend-up">
+                <i class="fas fa-arrow-up"></i>
+                <span id="risk-trend">+5.1%</span>
+              </div>
+            </div>
+            <div class="label">ML Risk Score</div>
+            <div class="value" id="risk-score">28%</div>
+            <div class="card-footer">
+              <i class="fas fa-brain"></i>
+              <span>XGBoost Model</span>
+            </div>
+          </div>
+          
+          <div class="card">
+            <div class="card-header">
+              <div class="card-icon">
+                <i class="fas fa-bell"></i>
+              </div>
+              <div class="card-trend trend-down">
+                <i class="fas fa-arrow-down"></i>
+                <span>0.5%</span>
+              </div>
+            </div>
+            <div class="label">Health Status</div>
+            <div class="value normal" id="status">Normal</div>
+            <div class="card-footer">
+              <i class="far fa-clock"></i>
+              <span>Stable for 2h 14m</span>
+            </div>
+          </div>
+          
+          <div class="card">
+            <div class="card-header">
+              <div class="card-icon">
+                <i class="fas fa-chart-line"></i>
+              </div>
+              <div class="card-trend trend-down">
+                <i class="fas fa-arrow-down"></i>
+                <span>3.7%</span>
+              </div>
+            </div>
+            <div class="label">Priority Level</div>
+            <div class="value" id="priority-level">Medium</div>
+            <div class="card-footer">
+              <i class="fas fa-sort-amount-up"></i>
+              <span>Queue Position: 2</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ECG Display -->
+        <div id="display">
+          <div class="display-header">
+            <div class="display-title">
+              <i class="fas fa-heartbeat"></i>
+              <span>Real-time ECG Waveform</span>
+            </div>
+            <div class="display-actions">
+              <span id="current-user">Patient: Loading...</span>
+            </div>
+          </div>
+          <div class="ecg-container">
+            <div class="ecg-grid"></div>
+            <canvas id="ecgCanvas" width="1200" height="300"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: ML Analytics -->
+      <div class="dashboard-right">
+        <!-- ML Analysis Card -->
+        <div class="ml-analysis">
+          <div class="ml-analysis-header">
+            <div class="ml-title">
+              <i class="fas fa-brain"></i>
+              <span>ML Health Classification</span>
+            </div>
+            <div class="ml-confidence">
+              <span>Confidence: </span>
+              <span id="ml-confidence">94.2%</span>
+            </div>
+          </div>
+          
+          <div class="ml-predictions">
+            <div class="prediction-header">
+              <h4>Predicted Conditions</h4>
+              <span class="prediction-time">Last analysis: <span id="prediction-time">2 min ago</span></span>
+            </div>
+            
+            <div class="condition-list">
+              <div class="condition-item">
+                <div class="condition-name">
+                  <i class="fas fa-heart"></i>
+                  <span>Sinus Rhythm</span>
+                </div>
+                <div class="condition-probability">
+                  <div class="probability-bar">
+                    <div class="probability-fill" style="width: 92%; background-color: #26A69A;"></div>
+                  </div>
+                  <span class="probability-value">92%</span>
+                </div>
+              </div>
+              
+              <div class="condition-item">
+                <div class="condition-name">
+                  <i class="fas fa-exclamation-triangle"></i>
+                  <span>Atrial Fibrillation</span>
+                </div>
+                <div class="condition-probability">
+                  <div class="probability-bar">
+                    <div class="probability-fill" style="width: 28%; background-color: #FF9800;"></div>
+                  </div>
+                  <span class="probability-value">28%</span>
+                </div>
+              </div>
+              
+              <div class="condition-item">
+                <div class="condition-name">
+                  <i class="fas fa-times-circle"></i>
+                  <span>Ventricular Tachycardia</span>
+                </div>
+                <div class="condition-probability">
+                  <div class="probability-bar">
+                    <div class="probability-fill" style="width: 5%; background-color: #E57373;"></div>
+                  </div>
+                  <span class="probability-value">5%</span>
+                </div>
+              </div>
+              
+              <div class="condition-item">
+                <div class="condition-name">
+                  <i class="fas fa-heartbeat"></i>
+                  <span>Bradycardia</span>
+                </div>
+                <div class="condition-probability">
+                  <div class="probability-bar">
+                    <div class="probability-fill" style="width: 3%; background-color: #2196F3;"></div>
+                  </div>
+                  <span class="probability-value">3%</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="ml-insights">
+              <div class="insight-header">
+                <i class="fas fa-lightbulb"></i>
+                <span>ML Insights</span>
+              </div>
+              <p id="ml-insight-text">ECG shows regular sinus rhythm with occasional PVCs. Heart rate variability within normal limits. Low risk of arrhythmic events in next 24 hours.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Risk Scoring Card -->
+        <div class="risk-scoring">
+          <div class="risk-header">
+            <h3><i class="fas fa-chart-pie"></i> Risk Factor Analysis</h3>
+            <div class="risk-score-display">
+              <div class="score-circle">
+                <svg width="80" height="80" viewBox="0 0 120 120">
+                  <circle cx="60" cy="60" r="54" fill="none" stroke="#eee" stroke-width="12"/>
+                  <circle id="risk-circle" cx="60" cy="60" r="54" fill="none" stroke="#E57373" stroke-width="12" 
+                          stroke-dasharray="339.292" stroke-dashoffset="244.292" stroke-linecap="round" transform="rotate(-90 60 60)"/>
+                  <text x="60" y="65" text-anchor="middle" font-size="20" font-weight="bold" fill="#333" id="risk-percent">28%</text>
+                </svg>
+              </div>
+              <div class="risk-details">
+                <div class="risk-category" id="risk-category">Low Risk</div>
+                <div class="risk-factors">
+                  <span>Factors: </span>
+                  <span id="risk-factors">4/12</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="risk-breakdown">
+            <h4>Risk Factor Breakdown</h4>
+            <div class="risk-factors-list">
+              <div class="risk-factor">
+                <div class="factor-name">Heart Rate Variability</div>
+                <div class="factor-score">
+                  <div class="score-bar">
+                    <div class="score-fill" style="width: 30%;"></div>
+                  </div>
+                  <span class="score-value">30%</span>
+                </div>
+              </div>
+              
+              <div class="risk-factor">
+                <div class="factor-name">ST Segment Depression</div>
+                <div class="factor-score">
+                  <div class="score-bar">
+                    <div class="score-fill" style="width: 15%;"></div>
+                  </div>
+                  <span class="score-value">15%</span>
+                </div>
+              </div>
+              
+              <div class="risk-factor">
+                <div class="factor-name">QT Interval</div>
+                <div class="factor-score">
+                  <div class="score-bar">
+                    <div class="score-fill" style="width: 42%;"></div>
+                  </div>
+                  <span class="score-value">42%</span>
+                </div>
+              </div>
+              
+              <div class="risk-factor">
+                <div class="factor-name">Arrhythmia Frequency</div>
+                <div class="factor-score">
+                  <div class="score-bar">
+                    <div class="score-fill" style="width: 65%;"></div>
+                  </div>
+                  <span class="score-value">65%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Footer -->
+    <div class="footer">
+      <div class="footer-logo">Cation ECG Monitoring System v3.0</div>
+      <div>© 2026 AI-Powered Medical Analytics Dashboard | For clinical use only</div>
+      <div class="footer-security">
+        <i class="fas fa-shield-alt"></i> All data is encrypted and HIPAA compliant | 
+        <i class="fas fa-server"></i> API: http://localhost:8000
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
